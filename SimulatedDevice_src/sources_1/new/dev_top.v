@@ -24,22 +24,37 @@ module SimulatedDevice(
     input sys_clk, //bind to P17 pin (100MHz system clock)
     input rx, //bind to N5 pin
     output tx, //bind to T4 pin
-    
     input turn_left_signal,
     input turn_right_signal,
     input move_forward_signal,
     input move_backward_signal,
     input place_barrier_signal,
     input destroy_barrier_signal,
-    input power,
+    input rst,
     input clutch,
     input throttle,
     input brake,
+    input power_on,
+    input power_off,
     output front_detector,
     output back_detector,
     output left_detector,
-    output right_detector
+    output right_detector,
+    output turn_left_light,
+    output turn_right_light
     );
+    wire power, next_power;
+    reg [1:0] state;
+    wire [1:0] next_state;
+    initial begin
+        state = 2'b00;
+    end
+    engine en(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), .power(power));
+    manual ma(.clk(sys_clk), .rst(rst), .power(power), .state(state), .clutch(clutch), 
+    .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .turn_left(turn_left_signal), 
+    .turn_right(turn_right_signal), .next_state(next_state), .next_power(next_power),
+    .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+
     wire [7:0] in = {2'b10, destroy_barrier_signal, place_barrier_signal, turn_right_signal, turn_left_signal, move_backward_signal, move_forward_signal};
     wire [7:0] rec;
     assign front_detector = rec[0];
