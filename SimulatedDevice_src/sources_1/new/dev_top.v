@@ -42,7 +42,9 @@ module SimulatedDevice(
     output right_detector,
     output turn_left_light,
     output turn_right_light,
-    output power_light
+    output power_light,
+    output [2:0] state_light,
+    output [3:0] moving_light
     );
     reg power;
     reg [1:0] state;
@@ -60,8 +62,9 @@ module SimulatedDevice(
     manual ma(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
     .power(power), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
-    .right(turn_right_signal), .next_state(next_state), .next_power(next_power),
-    .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), .power_light(power_light));
+    .right(turn_right_signal), .next_state(next_state), .next_moving_state(next_moving_state),
+    .next_power(next_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), 
+    .power_light(power_light), .state_light(state_light), .moving_light(moving_light));
 
     always @(next_power, next_state, next_moving_state) begin
         power = next_power;
