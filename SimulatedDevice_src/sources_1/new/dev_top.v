@@ -43,19 +43,33 @@ module SimulatedDevice(
     output turn_left_light,
     output turn_right_light
     );
+    wire init;
     wire power, next_power;
-    reg [1:0] state;
+    reg power_state;
+    reg [1:0] car_state;
+    reg [3:0] moving_state;
     wire [1:0] next_state;
+    wire [3:0] next_moving_state;
+
     initial begin
-        state = 2'b00;
+    power_state = 1'b1;
+    car_state = 2'b00;
+    moving_state = 4'b0000;
     end
+
     engine en(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), .power(power));
-    manual ma(.clk(sys_clk), .rst(rst), .power(power), .state(state), .clutch(clutch), 
-    .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .turn_left(turn_left_signal), 
-    .turn_right(turn_right_signal), .next_state(next_state), .next_power(next_power),
+    manual ma(.clk(sys_clk), .rst(rst), .power(power), .state(car_state), .moving_state(moving_state), .clutch(clutch), 
+    .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
+    .right(turn_right_signal), .next_state(next_state), .next_power(next_power),
     .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
 
-    wire [7:0] in = {2'b10, destroy_barrier_signal, place_barrier_signal, turn_right_signal, turn_left_signal, move_backward_signal, move_forward_signal};
+    always @(power, next_power, next_state, next_moving_state) begin
+        power_state = power & next_power;
+        car_state = next_state;
+        moving_state = next_moving_state;
+    end
+
+    wire [7:0] in = {2'b10, destroy_barrier_signal, place_barrier_signal, moving_state};
     wire [7:0] rec;
     assign front_detector = rec[0];
     assign left_detector = rec[1];
