@@ -98,7 +98,7 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
         next_moving_state = moving_state;
         power2 = power; 
       end
-      if (next_state != NSTART && next_moving_state != NON_MOVING) begin
+      if (next_state != NSTART && next_moving_state != NON_MOVING && next_moving_state != MOVE_BACK) begin
         if(~left&&~right) begin 
           if (next_state == MOVING) next_moving_state = MOVE_FORWARD;
           turn_left_light = 1'b0;
@@ -143,12 +143,17 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
         next_state = MOVING;
         next_moving_state = MOVE_BACK;
       end
+      else if (~rgs) begin
+        power2 = PON;
+        next_state = MOVING;
+        next_moving_state = MOVE_FORWARD;
+      end
       else begin
         power2 = PON;
         next_state = state;
         next_moving_state = moving_state;
       end
-      if (next_state != NSTART && next_moving_state != NON_MOVING) begin
+      if (next_state != NSTART && next_moving_state != NON_MOVING && next_moving_state != MOVE_BACK) begin
         if(~left&&~right) begin 
           if (next_state == MOVING) next_moving_state = MOVE_FORWARD;
           turn_left_light = 1'b0;
