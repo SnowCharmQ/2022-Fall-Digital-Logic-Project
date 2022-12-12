@@ -43,29 +43,28 @@ module SimulatedDevice(
     output turn_left_light,
     output turn_right_light
     );
-    wire init;
-    wire power, next_power;
-    reg power_state;
-    reg [1:0] car_state;
+    reg power;
+    reg [1:0] state;
     reg [3:0] moving_state;
+    wire next_power;
     wire [1:0] next_state;
     wire [3:0] next_moving_state;
 
     initial begin
-    power_state = 1'b1;
-    car_state = 2'b00;
+    power = 1'b0;
+    state = 2'b00;
     moving_state = 4'b0000;
     end
 
-    engine en(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), .power(power));
-    manual ma(.clk(sys_clk), .rst(rst), .power(power), .state(car_state), .moving_state(moving_state), .clutch(clutch), 
+    manual ma(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
+    .power(power), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
     .right(turn_right_signal), .next_state(next_state), .next_power(next_power),
     .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
 
-    always @(power, next_power, next_state, next_moving_state) begin
-        power_state = power & next_power;
-        car_state = next_state;
+    always @(next_power, next_state, next_moving_state) begin
+        power = next_power;
+        state = next_state;
         moving_state = next_moving_state;
     end
 
