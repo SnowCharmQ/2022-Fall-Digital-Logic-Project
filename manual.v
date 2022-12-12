@@ -7,7 +7,7 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
     parameter POFF=1'b0,PON=1'b1;//电源启动状态
     parameter NSTART=2'b00,START=2'b01,MOVING=2'b10;//小车运行状态
     parameter NON_MOVING=4'b0000,MOVE_FORWARD=4'b0001,MOVE_BACK=4'b0010,
-    TURN_LEFT=4'b0100,TURN_RIGHT=4'b1000;//小车行驶状态
+    TURN_RIGHT=4'b0100,TURN_LEFT=4'b1000;//小车行驶状态
 
     wire clk_ms,clk_20ms,clk_16x,clk_x;
     divclk my_divclk(
@@ -56,10 +56,22 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
       NSTART:begin
       turn_left_light = 1'b1;
       turn_right_light = 1'b1;
-      if(throttle&&~clutch) begin next_state=NSTART;power2=POFF; end
-      else if(throttle&&clutch&&~brake&&~rgs) begin next_state=START;power2=PON; end
-      else if (brake) begin next_state=NSTART;power2=PON; end
-      else begin next_state=state;power2=power; end
+      if (brake) begin 
+        next_state = NSTART;
+        power2 = PON; 
+      end
+      else if(throttle&&~clutch) begin 
+        next_state = NSTART;
+        power2 = POFF; 
+      end
+      else if(throttle&&clutch&&~brake&&~rgs) begin 
+        next_state = START;
+        power2 = PON; 
+      end
+      else begin 
+        next_state = state;
+        power2 = power; 
+      end
       next_moving_state = NON_MOVING;
       end
       
@@ -67,10 +79,26 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
       turn_left_light = 1'b0;
       turn_right_light = 1'b0;
       power2 = PON;
-      if(~clutch&&~brake&&throttle) begin next_state=MOVING;next_moving_state=MOVE_FORWARD; end
-      else if (brake) begin next_state=NSTART;next_moving_state=NON_MOVING; end
-      else begin next_state=state;power2=power; end
-      if (next_state != NSTART) begin
+      if (brake) begin 
+        next_state = NSTART;
+        next_moving_state = NON_MOVING; 
+      end
+      else if (~clutch&&throttle) begin 
+        next_state = MOVING;
+        if (rgs) next_moving_state = MOVE_BACK;
+        else next_moving_state = MOVE_FORWARD; 
+      end
+      else if (~throttle) begin
+        next_state = state;
+        next_moving_state = NON_MOVING;
+        power2 = power;
+      end
+      else begin 
+        next_state = state;
+        next_moving_state = moving_state;
+        power2 = power; 
+      end
+      if (next_state != NSTART && next_moving_state != NON_MOVING) begin
         if(~left&&~right) begin 
           if (next_state == MOVING) next_moving_state = MOVE_FORWARD;
           turn_left_light = 1'b0;
@@ -87,21 +115,17 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
           turn_left_light = 1'b1;
         end
         else begin
-          if (next_state == MOVING) next_moving_state = MOVE_BACK;
+          if (next_state == MOVING) next_moving_state = MOVE_FORWARD;
           turn_left_light = 1'b1;
           turn_right_light = 1'b1;
         end
       end
       end
+
       MOVING:begin
       if (rgs&&~clutch) begin
         power2 = POFF;
         next_state = NSTART;
-        next_moving_state = NON_MOVING;
-      end
-      else if (~throttle&&clutch) begin
-        power2 = PON;
-        next_state = START;
         next_moving_state = NON_MOVING;
       end
       else if (brake) begin
@@ -109,9 +133,14 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
         next_state = NSTART;
         next_moving_state = NON_MOVING;
       end
+      else if (~throttle) begin
+        power2 = PON;
+        next_state = START;
+        next_moving_state = NON_MOVING;
+      end
       else if (rgs&&clutch) begin
         power2 = PON;
-        next_state = state;
+        next_state = MOVING;
         next_moving_state = MOVE_BACK;
       end
       else begin
@@ -119,7 +148,7 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
         next_state = state;
         next_moving_state = moving_state;
       end
-      if (next_state != NSTART) begin
+      if (next_state != NSTART && next_moving_state != NON_MOVING) begin
         if(~left&&~right) begin 
           if (next_state == MOVING) next_moving_state = MOVE_FORWARD;
           turn_left_light = 1'b0;
@@ -136,7 +165,7 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
           turn_left_light = 1'b1;
         end
         else begin
-          if (next_state == MOVING) next_moving_state = MOVE_BACK;
+          if (next_state == MOVING) next_moving_state = MOVE_FORWARD;
           turn_left_light = 1'b1;
           turn_right_light = 1'b1;
         end

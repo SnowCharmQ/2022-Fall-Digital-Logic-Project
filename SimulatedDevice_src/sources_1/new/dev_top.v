@@ -66,7 +66,7 @@ module SimulatedDevice(
     .next_power(next_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), 
     .power_light(power_light), .state_light(state_light), .moving_light(moving_light));
 
-    always @(next_power, next_state, next_moving_state) begin
+    always @(*) begin
         power = next_power;
         state = next_state;
         moving_state = next_moving_state;
