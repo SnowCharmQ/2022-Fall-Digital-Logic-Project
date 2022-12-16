@@ -7,7 +7,7 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
     parameter POFF=1'b0,PON=1'b1;//电源启动状态
     parameter NSTART=2'b00,START=2'b01,MOVING=2'b10;//小车运行状态
     parameter NON_MOVING=4'b0000,MOVE_FORWARD=4'b0001,MOVE_BACK=4'b0010,
-    TURN_RIGHT=4'b0100,TURN_LEFT=4'b1000;//小车行驶状态
+    TURN_RIGHT=4'b1000,TURN_LEFT=4'b0100;//小车行驶状态
 
     wire clk_ms,clk_20ms,clk_16x,clk_x;
     divclk my_divclk(
