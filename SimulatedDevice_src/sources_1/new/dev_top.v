@@ -49,9 +49,10 @@ module SimulatedDevice(
     reg power;
     reg [1:0] state;
     reg [3:0] moving_state;
-    wire next_power;
+    wire manual_power;
     wire [1:0] next_state;
     wire [3:0] next_moving_state;
+    wire next_power;
 
     initial begin
     power = 1'b0;
@@ -59,11 +60,13 @@ module SimulatedDevice(
     moving_state = 4'b0000;
     end
 
-    manual ma(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
-    .power(power), .state(state), .moving_state(moving_state), .clutch(clutch), 
+    engine en(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
+    .manual_power(manual_power), .next_power(next_power));
+
+    manual ma(.power(power), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
     .right(turn_right_signal), .next_state(next_state), .next_moving_state(next_moving_state),
-    .next_power(next_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), 
+    .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), 
     .power_light(power_light), .state_light(state_light), .moving_light(moving_light));
 
     always @(*) begin
