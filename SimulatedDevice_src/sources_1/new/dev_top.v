@@ -44,30 +44,65 @@ module SimulatedDevice(
     output turn_left_light,
     output turn_right_light,
     output power_light,
-    output [2:0] state_light,
-    output [3:0] moving_light
+    output reg [2:0] state_light,
+    output reg [3:0] moving_light
     );
     reg power;
     reg [1:0] state;
     reg [3:0] moving_state;
     wire manual_power;
-    wire [1:0] next_state;
+    wire [1:0] next_state1;
+    wire [1:0] next_state2;
     wire [3:0] next_moving_state;
     wire next_power;
 
     engine en(.global_state(global_state), .clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
     .manual_power(manual_power), .next_power(next_power), .power_light(power_light));
 
-    manual ma(.power(power), .state(state), .moving_state(moving_state), .clutch(clutch), 
+    manual ma(.power(power), .global_state(global_state), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
-    .right(turn_right_signal), .next_state(next_state), .next_moving_state(next_moving_state),
-    .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), 
-    .state_light(state_light), .moving_light(moving_light));
+    .right(turn_right_signal), .next_state(next_state1), .next_moving_state(next_moving_state),
+    .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+
+    semi_auto sa(.power(power), .detector({front_detector, left_detector, right_detector, back_detector}),
+    .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
+    .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2));
+
+    always @(next_power) begin
+        power = next_power;
+    end
 
     always @(*) begin
-        power = next_power;
-        state = next_state;
-        moving_state = next_moving_state;
+      if (power == 1'b1) begin
+        if (state == 2'b00) state_light = 3'b001;
+        else if (state == 2'b01) state_light = 3'b010;
+        else state_light = 3'b100;
+        moving_light = moving_state;
+      end 
+      else begin
+        state_light = 3'b000;
+        moving_light = 4'b0000;
+      end
+    end
+
+    always @(*) begin
+        case (global_state)
+            2'b00:begin
+                state = next_state1;
+                moving_state = next_moving_state;
+            end 
+            2'b01:begin
+                state = next_state2;
+                moving_state = 4'b0000;
+            end
+            2'b10:begin
+                state = next_state2;
+                moving_state = 4'b0000;
+            end
+            2'b11:begin
+                
+            end
+        endcase
     end
 
     wire [7:0] in = {2'b10, destroy_barrier_signal, place_barrier_signal, moving_state};
