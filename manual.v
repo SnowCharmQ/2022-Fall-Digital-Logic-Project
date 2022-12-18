@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module manual(input clk, rst, power_on, power_off, power, input[1:0] state, input[3:0] moving_state, input clutch,brake,throttle,rgs,left,right,
+module manual(input power, input[1:0] state, input[3:0] moving_state, input clutch,brake,throttle,rgs,left,right,
 output reg [1:0] next_state, output reg [3:0] next_moving_state, output reg manual_power, output reg turn_left_light, output reg turn_right_light,
 output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_light);
 

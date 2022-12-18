@@ -54,12 +54,6 @@ module SimulatedDevice(
     wire [3:0] next_moving_state;
     wire next_power;
 
-    initial begin
-    power = 1'b0;
-    state = 2'b00;
-    moving_state = 4'b0000;
-    end
-
     engine en(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
     .manual_power(manual_power), .next_power(next_power));
 
