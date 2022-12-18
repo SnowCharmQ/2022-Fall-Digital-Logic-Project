@@ -1,7 +1,9 @@
 `timescale 1ns / 1ps
 
-module engine(input clk, rst, power_on, power_off, manual_power, output reg next_power);
+module engine(input [1:0] global_state, input clk, rst, power_on, power_off, manual_power, 
+              output reg next_power, output reg power_light);
     parameter POFF=1'b0,PON=1'b1;
+    reg [1:0] temp_state = 2'b00;
 
     wire clk_ms,clk_20ms,clk_16x,clk_x;
     divclk my_divclk(
@@ -31,16 +33,21 @@ module engine(input clk, rst, power_on, power_off, manual_power, output reg next
             cnt <= 10'b0;
             power1 <= 1'b0;
           end
-          if (power_on != 1'b1 && manual_power == POFF) begin
+          if (global_state == 2'b00 && power_on != 1'b1 && manual_power == POFF) begin
+            cnt <= 10'b0;
+            power1 <= 1'b0;
+          end
+          if (temp_state != global_state) begin
+            temp_state = global_state;
             cnt <= 10'b0;
             power1 <= 1'b0;
           end
         end
     end
 
-    always @(power1) begin
+    always @(power1, global_state) begin
         next_power = power1;
+        power_light = next_power;
     end
-
 
 endmodule

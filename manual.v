@@ -2,7 +2,7 @@
 
 module manual(input power, input[1:0] state, input[3:0] moving_state, input clutch,brake,throttle,rgs,left,right,
 output reg [1:0] next_state, output reg [3:0] next_moving_state, output reg manual_power, output reg turn_left_light, output reg turn_right_light,
-output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_light);
+output reg [2:0] state_light, output reg [3:0] moving_light);
 
     parameter POFF=1'b0,PON=1'b1;//电源启动状态
     parameter NSTART=2'b00,START=2'b01,MOVING=2'b10;//小车运行状态
@@ -147,7 +147,6 @@ output reg power_light, output reg [2:0] state_light, output reg [3:0] moving_li
     end
 
     always @(*) begin
-      power_light = power;
       if (power == PON) begin
         if (next_state == NSTART) state_light = 3'b001;
         else if (next_state == START) state_light = 3'b010;

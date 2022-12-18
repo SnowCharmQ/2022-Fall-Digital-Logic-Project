@@ -21,6 +21,7 @@
 
 
 module SimulatedDevice(
+    input[1:0] global_state,
     input sys_clk, //bind to P17 pin (100MHz system clock)
     input rx, //bind to N5 pin
     output tx, //bind to T4 pin
@@ -54,14 +55,14 @@ module SimulatedDevice(
     wire [3:0] next_moving_state;
     wire next_power;
 
-    engine en(.clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
-    .manual_power(manual_power), .next_power(next_power));
+    engine en(.global_state(global_state), .clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
+    .manual_power(manual_power), .next_power(next_power), .power_light(power_light));
 
     manual ma(.power(power), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
     .right(turn_right_signal), .next_state(next_state), .next_moving_state(next_moving_state),
     .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light), 
-    .power_light(power_light), .state_light(state_light), .moving_light(moving_light));
+    .state_light(state_light), .moving_light(moving_light));
 
     always @(*) begin
         power = next_power;
