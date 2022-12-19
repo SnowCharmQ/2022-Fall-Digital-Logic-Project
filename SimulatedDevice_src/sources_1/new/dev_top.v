@@ -48,12 +48,13 @@ module SimulatedDevice(
     output reg [3:0] moving_light
     );
     reg power;
-    reg [1:0] state;
-    reg [3:0] moving_state;
+    reg [1:0] state = 2'b00;
+    reg [3:0] moving_state = 4'b0000;
     wire manual_power;
     wire [1:0] next_state1;
     wire [1:0] next_state2;
-    wire [3:0] next_moving_state;
+    wire [3:0] next_moving_state1;
+    wire [3:0] next_moving_state2;
     wire next_power;
 
     engine en(.global_state(global_state), .clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
@@ -61,12 +62,14 @@ module SimulatedDevice(
 
     manual ma(.power(power), .global_state(global_state), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
-    .right(turn_right_signal), .next_state(next_state1), .next_moving_state(next_moving_state),
+    .right(turn_right_signal), .next_state(next_state1), .next_moving_state(next_moving_state1),
     .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
 
-    semi_auto sa(.power(power), .detector({front_detector, left_detector, right_detector, back_detector}),
-    .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
-    .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2));
+    semi_auto sa(.power(power), .global_state(global_state),
+    .detector({front_detector, left_detector, right_detector, back_detector}),
+    .state(state), .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
+    .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2),
+    .next_moving_state(next_moving_state2));
 
     always @(next_power) begin
         power = next_power;
@@ -89,15 +92,15 @@ module SimulatedDevice(
         case (global_state)
             2'b00:begin
                 state = next_state1;
-                moving_state = next_moving_state;
+                moving_state = next_moving_state1;
             end 
             2'b01:begin
                 state = next_state2;
-                moving_state = 4'b0000;
+                moving_state = next_moving_state2;
             end
             2'b10:begin
                 state = next_state2;
-                moving_state = 4'b0000;
+                moving_state = next_moving_state2;
             end
             2'b11:begin
                 
