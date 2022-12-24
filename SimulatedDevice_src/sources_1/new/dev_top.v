@@ -77,9 +77,19 @@ module SimulatedDevice(
 
     always @(*) begin
       if (power == 1'b1) begin
-        if (state == 2'b00) state_light = 3'b001;
-        else if (state == 2'b01) state_light = 3'b010;
-        else state_light = 3'b100;
+        if (global_state == 2'b00) begin
+            if (state == 2'b00) state_light = 3'b001;
+            else if (state == 2'b01) state_light = 3'b010;
+            else state_light = 3'b100;
+        end
+        else if (global_state == 2'b01 || global_state == 2'b10) begin
+          case (state)
+            2'b00: state_light = 3'b001;
+            2'b01: state_light = 3'b010;
+            2'b10: state_light = 3'b100;
+            2'b11: state_light = 3'b111; 
+          endcase
+        end
         moving_light = moving_state;
       end 
       else begin
