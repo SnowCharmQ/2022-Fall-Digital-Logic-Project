@@ -3,7 +3,7 @@
 module engine(input [1:0] global_state, input clk, rst, power_on, power_off, manual_power, 
               output reg next_power, output reg power_light);
     parameter POFF=1'b0,PON=1'b1;
-    reg [1:0] temp_state = 2'b00;
+    reg [1:0] temp_state;
 
     wire clk_ms,clk_20ms,clk_16x,clk_x;
     divclk my_divclk(
@@ -16,7 +16,10 @@ module engine(input [1:0] global_state, input clk, rst, power_on, power_off, man
 
     reg power1;
     reg [9:0] cnt;
-    always @(posedge clk_ms or negedge rst) begin
+    always @(posedge clk_ms) begin
+        if (rst == 1'b1) begin
+          temp_state = 2'b00;
+        end
         if (rst) begin
           cnt <= 10'b0;
           power1 <= 1'b0;

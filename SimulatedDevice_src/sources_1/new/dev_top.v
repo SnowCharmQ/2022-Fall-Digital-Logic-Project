@@ -41,35 +41,49 @@ module SimulatedDevice(
     output back_detector,
     output left_detector,
     output right_detector,
+    output move_backward_light,
+    output move_forward_light,
     output turn_left_light,
     output turn_right_light,
     output power_light,
     output reg [2:0] state_light,
-    output reg [3:0] moving_light
+    output reg [3:0] moving_light,
+    output [7:0] seg_out,
+    output [7:0] seg_en
     );
     reg power;
-    reg [1:0] state = 2'b00;
-    reg [3:0] moving_state = 4'b0000;
+    reg [1:0] state;
+    reg [3:0] moving_state;
     wire manual_power;
     wire [1:0] next_state1;
     wire [1:0] next_state2;
+    wire [1:0] next_state3;
     wire [3:0] next_moving_state1;
     wire [3:0] next_moving_state2;
+    wire [3:0] next_moving_state3;
+    wire pl_beacon_sig, de_beacon_sig;
     wire next_power;
 
     engine en(.global_state(global_state), .clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
     .manual_power(manual_power), .next_power(next_power), .power_light(power_light));
 
-    manual ma(.power(power), .global_state(global_state), .state(state), .moving_state(moving_state), .clutch(clutch), 
+    manual ma(.rst(rst), .power(power), .global_state(global_state), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
     .right(turn_right_signal), .next_state(next_state1), .next_moving_state(next_moving_state1),
-    .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+    .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light),
+    .seg_out(seg_out), .seg_en(seg_en));
 
     semi_auto sa(.power(power), .global_state(global_state),
     .detector({front_detector, left_detector, right_detector, back_detector}),
     .state(state), .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
     .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2),
-    .next_moving_state(next_moving_state2));
+    .next_moving_state(next_moving_state2), .move_backward_light(move_backward_light), .move_forward_light(move_forward_light),
+    .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+
+    // auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
+    // .turn_detector({back_detector, front_detector, right_detector, left_detector}),
+    // .pl_beacon_sig(pl_beacon_sig), .de_beacon_sig(de_beacon_sig), 
+    // .next_state_sig(next_state3), .next_turn_sig(next_moving_state3));
 
     always @(next_power) begin
         power = next_power;
@@ -94,12 +108,17 @@ module SimulatedDevice(
       end 
       else begin
         state_light = 3'b000;
-        moving_light = 4'b0000;
+        moving_light = moving_state;
       end
     end
 
     always @(*) begin
-        case (global_state)
+        if (rst == 1'b1) begin
+          state = 2'b00;
+          moving_state = 4'b0000;
+        end
+        else begin
+          case (global_state)
             2'b00:begin
                 state = next_state1;
                 moving_state = next_moving_state1;
@@ -113,12 +132,14 @@ module SimulatedDevice(
                 moving_state = next_moving_state2;
             end
             2'b11:begin
-                
+                // state = next_state3;
+                // moving_state = next_moving_state3;
             end
-        endcase
+          endcase
+        end
     end
 
-    wire [7:0] in = {2'b10, destroy_barrier_signal, place_barrier_signal, moving_state};
+    wire [7:0] in = {2'b10, de_beacon_sig, pl_beacon_sig, moving_state};
     wire [7:0] rec;
     assign front_detector = rec[0];
     assign left_detector = rec[1];
