@@ -2,34 +2,28 @@
 
 module manual(input clk,input rst, input power, input[1:0] global_state, input[1:0] state, input[3:0] moving_state, input clutch,brake,throttle,rgs,left,right,
 output reg [1:0] next_state, output reg [3:0] next_moving_state, output reg manual_power, output reg turn_left_light, output reg turn_right_light,
-output [7:0] seg_out, output [7:0] seg_en);
-
+output [7:0] seg1, output [7:0] seg2, output [7:0] an);
     parameter POFF=1'b0,PON=1'b1;//电源启动状态
     parameter NSTART=2'b00,START=2'b01,MOVING=2'b10;//小车运行状态
     parameter NON_MOVING=4'b0000,MOVE_FORWARD=4'b0001,MOVE_BACK=4'b0010,
     TURN_RIGHT=4'b1000,TURN_LEFT=4'b0100;//小车行驶状态
-    reg[9:0] mile_cnt;
-    
-    wire clk_ms,clk_20ms,clk_16x,clk_x;
-    divclk my_divclk(
-        .clk(clk),
-        .clk_ms(clk_ms),
-        .btnclk(clk_20ms),
-        .clk_16x(clk_16x),
-        .clk_x(clk_x)
-    );
-    
-    // milecounter_7seg mc(.rst(rst), .clk(clk_ms), .num(mile_cnt),
-    // .seg_out(seg_out), .seg_en(seg_en));
-    
-    always@(posedge clk) begin//TODO 确认时钟
-      if(rst)
-        mile_cnt <= 12'b0;
-      else
-        if(state == MOVING) mile_cnt <= mile_cnt + 12'b1;      
+    reg activate;
+    reg moving;
+
+    milecounter mc(.clk(clk), .rst(rst), .moving(moving), .activate(activate),
+    .seg1(seg1), .seg2(seg2), .an(an));
+
+    always @(power, global_state) begin
+      if (power == 1'b1 && global_state == 2'b00) activate = 1'b1;
+      else activate = 1'b0;
     end
 
-    always @(power,clutch,brake,throttle,rgs,left,right,state,moving_state) begin
+    always @(state) begin
+      if (state == MOVING) moving = 1'b1;
+      else moving = 1'b0;
+    end
+    
+    always @(global_state,power,clutch,brake,throttle,rgs,left,right,state,moving_state) begin
     if (power == PON && global_state == 2'b00) begin
       case(state)
 
@@ -43,7 +37,6 @@ output [7:0] seg_out, output [7:0] seg_en);
       else if(throttle&&~clutch) begin 
         next_state = NSTART;
         manual_power = POFF; 
-        mile_cnt=0;
       end
       else if(throttle&&clutch&&~brake&&~rgs) begin 
         next_state = START;
