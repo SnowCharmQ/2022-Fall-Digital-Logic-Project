@@ -13,12 +13,8 @@ output reg turn_left_light, output reg turn_right_light);
   //s3 turing
   //s4 cooldown
   parameter MOVE_FORWARD=4'b0001, STOP=4'b0000, TURN_LEFT=4'b0100, TURN_RIGHT=4'b1000;
-  //ns1 move forward
-  //ns2 stop
-  //ns3 turn left
-  //ns4 turn right
   
-  reg crossroad;
+  reg crossroad, type;
   reg [10:0] turn_cnt;
   reg [10:0] cool_cnt;
   reg [3:0] traffic;
@@ -28,6 +24,16 @@ output reg turn_left_light, output reg turn_right_light);
   always @(detector) begin
     if (detector[0] || ~detector[1] || ~detector[2]) crossroad = 1'b1;
     else crossroad = 1'b0;
+  end
+
+  always @(turn_left,turn_right,go_straight,go_back) begin
+    if (turn_left && ~turn_right && ~go_straight && ~go_back) traffic = TURN_LEFT;
+    else if (~turn_left && turn_right && ~go_straight && ~go_back) traffic = TURN_RIGHT;
+    else if (~turn_left && ~turn_right && go_straight && ~go_back) traffic = MOVE_FORWARD;
+    else if (~turn_left && ~turn_right && ~go_straight && go_back) traffic = TURN_RIGHT;
+    else traffic = STOP;
+    if (traffic == TURN_RIGHT && go_back) type = 1'b1;
+    else type = 1'b0;
   end
 
   always @(power, global_state, state) begin
@@ -46,7 +52,24 @@ output reg turn_left_light, output reg turn_right_light);
           endcase
         end 
         s2:begin
-          
+          case (traffic)
+            MOVE_FORWARD: begin
+              next_state = s1;//TODO: cooldown
+              next_moving_state = MOVE_FORWARD;
+            end
+            TURN_LEFT: begin
+              next_state = s3;
+              next_moving_state = TURN_LEFT;
+            end
+            TURN_RIGHT: begin
+              next_state = s3;
+              next_moving_state = TURN_RIGHT;
+            end
+            STOP: begin
+              next_state = s2;
+              next_moving_state = STOP;
+            end
+          endcase
         end
       endcase
     end

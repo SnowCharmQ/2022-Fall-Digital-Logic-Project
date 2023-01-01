@@ -74,12 +74,12 @@ module SimulatedDevice(
     .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light),
     .seg1(seg1), .seg2(seg2), .an(an));
 
-    // semi_auto sa(.power(power), .global_state(global_state),
-    // .detector({front_detector, left_detector, right_detector, back_detector}),
-    // .state(state), .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
-    // .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2),
-    // .next_moving_state(next_moving_state2), .move_backward_light(move_backward_light), .move_forward_light(move_forward_light),
-    // .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+    semiauto sa(.power(power), .global_state(global_state),
+    .detector({front_detector, left_detector, right_detector, back_detector}),
+    .state(state), .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
+    .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2),
+    .next_moving_state(next_moving_state2), .move_backward_light(move_backward_light), .move_forward_light(move_forward_light),
+    .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
 
     // auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
     // .turn_detector({back_detector, front_detector, right_detector, left_detector}),
