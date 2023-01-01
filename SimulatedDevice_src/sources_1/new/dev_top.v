@@ -48,8 +48,9 @@ module SimulatedDevice(
     output power_light,
     output reg [2:0] state_light,
     output reg [3:0] moving_light,
-    output [7:0] seg_out,
-    output [7:0] seg_en
+    output [7:0] seg1,
+    output [7:0] seg2,
+    output [7:0] an
     );
     reg power;
     reg [1:0] state;
@@ -67,18 +68,18 @@ module SimulatedDevice(
     engine en(.global_state(global_state), .clk(sys_clk), .rst(rst), .power_on(power_on), .power_off(power_off), 
     .manual_power(manual_power), .next_power(next_power), .power_light(power_light));
 
-    manual ma(.rst(rst), .power(power), .global_state(global_state), .state(state), .moving_state(moving_state), .clutch(clutch), 
+    manual ma(.clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), .state(state), .moving_state(moving_state), .clutch(clutch), 
     .brake(brake), .throttle(throttle), .rgs(move_backward_signal), .left(turn_left_signal), 
     .right(turn_right_signal), .next_state(next_state1), .next_moving_state(next_moving_state1),
     .manual_power(manual_power), .turn_left_light(turn_left_light), .turn_right_light(turn_right_light),
-    .seg_out(seg_out), .seg_en(seg_en));
+    .seg1(seg1), .seg2(seg2), .an(an));
 
-    semi_auto sa(.power(power), .global_state(global_state),
-    .detector({front_detector, left_detector, right_detector, back_detector}),
-    .state(state), .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
-    .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2),
-    .next_moving_state(next_moving_state2), .move_backward_light(move_backward_light), .move_forward_light(move_forward_light),
-    .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+    // semi_auto sa(.power(power), .global_state(global_state),
+    // .detector({front_detector, left_detector, right_detector, back_detector}),
+    // .state(state), .rst(rst), .sys_clk(sys_clk), .turn_left(turn_left_signal), .turn_right(turn_right_signal), 
+    // .go_straight(move_forward_signal), .go_back(move_backward_signal), .next_state(next_state2),
+    // .next_moving_state(next_moving_state2), .move_backward_light(move_backward_light), .move_forward_light(move_forward_light),
+    // .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
 
     // auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
     // .turn_detector({back_detector, front_detector, right_detector, left_detector}),
