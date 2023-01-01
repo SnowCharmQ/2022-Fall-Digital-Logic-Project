@@ -18,8 +18,8 @@ output [7:0] seg1, output [7:0] seg2, output [7:0] an);
       else activate = 1'b0;
     end
 
-    always @(state) begin
-      if (state == MOVING) moving = 1'b1;
+    always @(moving_state) begin
+      if (moving_state == MOVE_FORWARD || moving_state == MOVE_BACK) moving = 1'b1;
       else moving = 1'b0;
     end
     
