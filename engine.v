@@ -48,7 +48,7 @@ module engine(input [1:0] global_state, input clk, rst, power_on, power_off, man
         end
     end
 
-    always @(power1, global_state) begin
+    always @(*) begin
         next_power = power1;
         power_light = next_power;
     end
