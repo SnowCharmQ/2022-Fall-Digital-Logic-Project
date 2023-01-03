@@ -21,15 +21,15 @@ output reg turn_left_light, output reg turn_right_light);
   wire clk_ms,clk_20ms,clk_16x,clk_x;
   divclk myclk(sys_clk,clk_ms,clk_20ms,clk_16x,clk_x);
 
-  always @(posedge clk_20ms) begin
-    if (rst == 1'b1) begin
-      turn_cnt <= 11'b0;
-    end
-    else begin
-      if (state == s3) turn_cnt <= turn_cnt + 11'b1;
-      else turn_cnt <= 11'b0;
-    end
-  end
+  // always @(posedge clk_20ms) begin
+  //   if (rst == 1'b1) begin
+  //     turn_cnt <= 11'b0;
+  //   end
+  //   else begin
+  //     if (state == s3) turn_cnt <= turn_cnt + 11'b1;
+  //     else turn_cnt <= 11'b0;
+  //   end
+  // end
 
   always @(posedge clk_20ms) begin
     if (rst == 1'b1) begin
@@ -41,7 +41,7 @@ output reg turn_left_light, output reg turn_right_light);
     end
   end
 
-  always @(*) begin
+  always @(power, global_state, detector, state, moving_state, cool_cnt, turn_cnt) begin
     if (power == 1'b1 && (global_state == 2'b01 || global_state == 2'b10)) begin
       case (state)
         s1:begin
@@ -60,54 +60,52 @@ output reg turn_left_light, output reg turn_right_light);
         end 
         s2:begin
           if (go_straight) traffic = MOVE_FORWARD;
-          else if (go_back) traffic = TURN_RIGHT;
-          else if (turn_left && ~turn_right) traffic = TURN_LEFT;
-          else if (~turn_left && turn_right) traffic = TURN_RIGHT;
+          // else if (go_back) traffic = TURN_RIGHT;
+          // else if (turn_left && ~turn_right) traffic = TURN_LEFT;
+          // else if (~turn_left && turn_right) traffic = TURN_RIGHT;
+          else if (~go_straight && ~go_back && ~turn_left && ~turn_right) traffic = STOP;
           else traffic = STOP;
-          // if (traffic == TURN_RIGHT && go_back) around = 1'b1;
-          // else around = 1'b0;
+          if (traffic == TURN_RIGHT && go_back) around = 1'b1;
+          else around = 1'b0;
           case (traffic)
+            STOP: begin
+              next_state = state;
+            end
             MOVE_FORWARD: begin
               next_state = s4;
-              next_moving_state = MOVE_FORWARD;
             end
             TURN_LEFT: begin
               next_state = s3;
-              next_moving_state = TURN_LEFT;
             end
             TURN_RIGHT: begin
               next_state = s3;
-              next_moving_state = TURN_RIGHT;
-            end
-            STOP: begin
-              next_state = s2;
-              next_moving_state = STOP;
             end
           endcase
+          next_moving_state = traffic;
         end
         s3:begin
-          // case (around)
-          //   1'b1:begin
-          //     if (turn_cnt >= 11'd400) begin
-          //       next_state = s2;
-          //       next_moving_state = STOP;
-          //     end
-          //     else begin
-          //       next_state = s3;
-          //       next_moving_state = moving_state;
-          //     end
-          //   end 
-          //   1'b0:begin
-          //     if (turn_cnt >= 11'd200) begin
-          //       next_state = s2;
-          //       next_moving_state = STOP;
-          //     end
-          //     else begin
-          //       next_state = s3;
-          //       next_moving_state = moving_state;
-          //     end
+          next_state = s3;
+          next_moving_state = moving_state;
+          // if (around == 1'b1) begin
+          //   if (turn_cnt >= 11'd400) begin
+          //     next_state = s2;
+          //     next_moving_state = STOP;
           //   end
-          // endcase
+          //   else begin
+          //     next_state = s3;
+          //     next_moving_state = moving_state;
+          //   end
+          // end
+          // else begin
+          //   if (turn_cnt >= 11'd200) begin
+          //     next_state = s2;
+          //     next_moving_state = STOP;
+          //   end
+          //   else begin
+          //     next_state = s3;
+          //     next_moving_state = moving_state;
+          //   end
+          // end
         end
         s4:begin
           if (cool_cnt >= 11'd50) begin
