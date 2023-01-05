@@ -66,17 +66,37 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
             traffic = MOVE_FORWARD;
           end
           else begin
-            if (~left && ~right) traffic = STOP;
-            // else if (left && ~right) traffic = TURN_LEFT;
-            // else if (left && right) traffic = TURN_RIGHT;
-            else traffic = STOP;
+            if (~left && ~right) begin
+              traffic = STOP;
+            end
+            else if (left && ~right) begin
+              traffic = TURN_LEFT;
+            end 
+            else if (left && right) begin
+              traffic = TURN_RIGHT;
+            end 
+            else begin
+              traffic = STOP;
+            end 
           end
-          // if (traffic == TURN_RIGHT && go_back) around = 1'b1;
-          // else around = 1'b0;
-          if (traffic == STOP) next_state = s2;
-          else if (traffic == MOVE_FORWARD) next_state = s4;
-          else if (traffic == TURN_LEFT) next_state = s3;
-          else if (traffic == TURN_RIGHT) next_state = s3;
+          if (traffic == TURN_RIGHT && back) begin
+            around = 1'b1;
+          end 
+          else begin
+            around = 1'b0;
+          end 
+          if (traffic == STOP) begin
+            next_state = s2;
+          end 
+          else if (traffic == MOVE_FORWARD) begin
+            next_state = s4;
+          end 
+          else if (traffic == TURN_LEFT) begin
+            next_state = s3;
+          end 
+          else if (traffic == TURN_RIGHT) begin
+            next_state = s3;
+          end 
           next_moving_state = traffic;
         end
         s3:begin
