@@ -78,9 +78,7 @@ module SimulatedDevice(
     .detector({front_detector, left_detector, right_detector, back_detector}),
     .state(state), .moving_state(moving_state), .rst(rst), .sys_clk(sys_clk), 
     .left(turn_left_signal), .right(turn_right_signal), .straight(move_forward_signal), 
-    .back(move_backward_signal), .next_state(next_state2), .next_moving_state(next_moving_state2), 
-    .move_backward_light(move_backward_light), .move_forward_light(move_forward_light),
-    .turn_left_light(turn_left_light), .turn_right_light(turn_right_light));
+    .back(move_backward_signal), .next_state(next_state2), .next_moving_state(next_moving_state2));
 
     // auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
     // .turn_detector({back_detector, front_detector, right_detector, left_detector}),

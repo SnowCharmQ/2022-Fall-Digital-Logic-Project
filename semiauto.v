@@ -3,9 +3,7 @@
 module semiauto(input power, input [1:0] global_state, input [3:0] detector, 
 input[1:0] state, input[3:0] moving_state, input rst, input sys_clk, 
 input left, input right, input straight, input back, 
-output reg [1:0] next_state, output reg [3:0] next_moving_state,
-output reg move_backward_light, output reg move_forward_light, 
-output reg turn_left_light, output reg turn_right_light);
+output reg [1:0] next_state, output reg [3:0] next_moving_state);
  
   parameter s1=2'b00, s2=2'b01, s3=2'b10, s4=2'b11;
   //s1 move forward
@@ -64,10 +62,13 @@ output reg turn_left_light, output reg turn_right_light);
           endcase
         end 
         s2:begin
-          if (straight) traffic = MOVE_FORWARD;
+          if (straight) begin
+            traffic = MOVE_FORWARD;
+          end
           else begin
-            if (left && right) traffic = TURN_LEFT;
-            else if (left && right) traffic = TURN_RIGHT;
+            if (~left && ~right) traffic = STOP;
+            // else if (left && ~right) traffic = TURN_LEFT;
+            // else if (left && right) traffic = TURN_RIGHT;
             else traffic = STOP;
           end
           // if (traffic == TURN_RIGHT && go_back) around = 1'b1;
