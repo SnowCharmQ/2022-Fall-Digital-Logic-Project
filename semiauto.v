@@ -2,7 +2,7 @@
 
 module semiauto(input power, input [1:0] global_state, input [3:0] detector, 
 input[1:0] state, input[3:0] moving_state, input rst, input sys_clk, 
-input turn_left, input turn_right, input go_straight, input go_back, 
+input left, input right, input straight, input back, 
 output reg [1:0] next_state, output reg [3:0] next_moving_state,
 output reg move_backward_light, output reg move_forward_light, 
 output reg turn_left_light, output reg turn_right_light);
@@ -14,7 +14,8 @@ output reg turn_left_light, output reg turn_right_light);
   //s4 cooldown
   parameter MOVE_FORWARD=4'b0001, STOP=4'b0000, TURN_LEFT=4'b0100, TURN_RIGHT=4'b1000;
   
-  reg crossroad, around;
+  reg crossroad = 1'b1;
+  reg around = 1'b0;
   reg [10:0] turn_cnt;
   reg [10:0] cool_cnt;
   reg [3:0] traffic;
@@ -41,12 +42,16 @@ output reg turn_left_light, output reg turn_right_light);
     end
   end
 
-  always @(power, global_state, detector, state, moving_state, cool_cnt, turn_cnt) begin
+  always @(posedge sys_clk) begin
+    if (detector[0] || ~detector[1] || ~detector[2]) crossroad = 1'b1;
+    else crossroad = 1'b0;
+  end
+
+  always @(power, global_state, state, moving_state, cool_cnt, turn_cnt, crossroad,
+  straight, back, left, right) begin
     if (power == 1'b1 && (global_state == 2'b01 || global_state == 2'b10)) begin
       case (state)
         s1:begin
-          if (detector[0] || ~detector[1] || ~detector[2]) crossroad = 1'b1;
-          else crossroad = 1'b0;
           case (crossroad)
             1'b0: begin
               next_state = s1;
@@ -59,28 +64,18 @@ output reg turn_left_light, output reg turn_right_light);
           endcase
         end 
         s2:begin
-          if (go_straight) traffic = MOVE_FORWARD;
-          // else if (go_back) traffic = TURN_RIGHT;
-          // else if (turn_left && ~turn_right) traffic = TURN_LEFT;
-          // else if (~turn_left && turn_right) traffic = TURN_RIGHT;
-          else if (~go_straight && ~go_back && ~turn_left && ~turn_right) traffic = STOP;
-          else traffic = STOP;
-          if (traffic == TURN_RIGHT && go_back) around = 1'b1;
-          else around = 1'b0;
-          case (traffic)
-            STOP: begin
-              next_state = state;
-            end
-            MOVE_FORWARD: begin
-              next_state = s4;
-            end
-            TURN_LEFT: begin
-              next_state = s3;
-            end
-            TURN_RIGHT: begin
-              next_state = s3;
-            end
-          endcase
+          if (straight) traffic = MOVE_FORWARD;
+          else begin
+            if (left && right) traffic = TURN_LEFT;
+            else if (left && right) traffic = TURN_RIGHT;
+            else traffic = STOP;
+          end
+          // if (traffic == TURN_RIGHT && go_back) around = 1'b1;
+          // else around = 1'b0;
+          if (traffic == STOP) next_state = s2;
+          else if (traffic == MOVE_FORWARD) next_state = s4;
+          else if (traffic == TURN_LEFT) next_state = s3;
+          else if (traffic == TURN_RIGHT) next_state = s3;
           next_moving_state = traffic;
         end
         s3:begin
