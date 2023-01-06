@@ -50,28 +50,22 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
       traffic = MOVE_FORWARD;
       around = 1'b0;
     end
-    else if (~straight && back) begin
-      traffic = TURN_RIGHT;
+    else if (back) begin
+      traffic = TURN_LEFT;
       around = 1'b1;
     end
+    else if (left && ~right) begin
+      traffic = TURN_LEFT;
+      around = 1'b0;
+    end 
+    else if (~left && right) begin
+      traffic = TURN_RIGHT;
+      around = 1'b0;
+    end 
     else begin
       traffic = STOP;
       around = 1'b0;
-    end
-    if (traffic == STOP) begin
-      if (~left && ~right) begin
-        traffic = STOP;
-      end
-      else if (left && ~right) begin
-        traffic = TURN_LEFT;
-      end 
-      else if (~left && right) begin
-        traffic = TURN_RIGHT;
-      end 
-      else begin
-        traffic = STOP;
-      end 
-    end
+    end 
   end
 
   always @(power, rst, global_state, state, moving_state, traffic, cool_cnt, turn_cnt, crossroad, around) begin
