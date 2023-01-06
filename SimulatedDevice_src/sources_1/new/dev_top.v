@@ -89,7 +89,7 @@ module SimulatedDevice(
         power = next_power;
     end
 
-    always @(*) begin
+    always @(power, state, global_state) begin
       if (power == 1'b1) begin
         if (global_state == 2'b00) begin
             if (state == 2'b00) state_light = 3'b001;
@@ -104,6 +104,7 @@ module SimulatedDevice(
             2'b11: state_light = 3'b111; 
           endcase
         end
+        else state_light = 3'b000;
         moving_light = moving_state;
       end 
       else begin
@@ -112,7 +113,7 @@ module SimulatedDevice(
       end
     end
 
-    always @(*) begin
+    always @(rst, next_state1, next_state2, next_moving_state1, next_moving_state2) begin
         if (rst == 1'b1) begin
           state = 2'b00;
           moving_state = 4'b0000;
