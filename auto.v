@@ -1,9 +1,10 @@
 `timescale 1ns / 1ps
 
-module auto(input sys_clk,rx,tx,rst,power,input[3:0] turn_detector,
-output reg pl_beacon_sig,de_beacon_sig,
-output reg[3:0] next_turn,output reg[1:0] next_state
-);
+module auto(input sys_clk, rst, power,
+global_state, input[3:0] turn_detector,
+output reg pl_beacon_sig, output reg de_beacon_sig,
+output reg[1:0] next_state,output reg[3:0] next_moving_state);
+
     reg[7:0] turn_time_cnt,move_time_cnt,wait_time_cnt;
     reg pl_beacon,de_beacon;reg[3:0] turn;reg[1:0] state;
     //reg btobe_pl;//reg if_fork;//valid: turn until 90 degrees
@@ -39,20 +40,12 @@ output reg[3:0] next_turn,output reg[1:0] next_state
     4'b0110: begin turn=front;end//fl
     default: begin turn=front;end
     endcase
-    
-    end
-    
-    else if(state==WAIT) begin
-      state=MOVE;
-      turn=front;
     end
     else if(state==WAIT) begin
       state=MOVE;
       turn=front;
     end
-    
     end
-    
     
     always@* begin
       case(state) 
@@ -89,7 +82,6 @@ output reg[3:0] next_turn,output reg[1:0] next_state
       endcase
     end
     
-
     always@(posedge clk_20ms) begin
       if(~rst) begin
         turn_time_cnt<=8'b0;
@@ -97,10 +89,10 @@ output reg[3:0] next_turn,output reg[1:0] next_state
         pl_beacon<=1'b0;pl_beacon_sig<=1'b0;//
         de_beacon<=1'b0;de_beacon_sig<=1'b0;
         state<=MOVE;next_state<=MOVE;//next_state<=state;
-        turn<=front;next_turn<=front;
+        turn<=front;next_moving_state<=front;
         end
       else begin
-        next_turn<=turn;
+        next_moving_state<=turn;
         next_state<=state;
         de_beacon_sig<=de_beacon;
         if(state==TURN) turn_time_cnt<=turn_time_cnt+5'd20;
@@ -114,5 +106,4 @@ output reg[3:0] next_turn,output reg[1:0] next_state
         end
     end
      
-    
 endmodule
