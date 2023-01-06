@@ -112,7 +112,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
         s3:begin
           case (around)
             1'b1: begin
-              if (turn_cnt >= 11'd200) begin
+              if (turn_cnt >= 11'd400) begin
                 next_state = s4;
                 next_moving_state = STOP;
               end
@@ -123,7 +123,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
               end
             end
             1'b0: begin
-              if (turn_cnt >= 11'd100) begin
+              if (turn_cnt >= 11'd200) begin
                 next_state = s4;
                 next_moving_state = STOP;
               end
