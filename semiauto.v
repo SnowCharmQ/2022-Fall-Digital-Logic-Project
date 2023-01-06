@@ -5,7 +5,7 @@ input[1:0] state, input[3:0] moving_state, input rst, input sys_clk,
 input left, input right, input straight, input back, 
 output reg [1:0] next_state, output reg [3:0] next_moving_state);
  
-  parameter s1=2'b00, s2=2'b01, s3=2'b10, s4=2'b11;
+  parameter s1=2'b01, s2=2'b00, s3=2'b10, s4=2'b11;
   //s1 move forward
   //s2 waiting
   //s3 turing
@@ -14,7 +14,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
   
   reg crossroad = 1'b1;
   reg around = 1'b0;
-  reg [10:0] turn_cnt;
+  reg [15:0] turn_cnt;
   reg [10:0] cool_cnt;
   reg [3:0] traffic;
   wire clk_ms,clk_20ms,clk_16x,clk_x;
@@ -50,25 +50,31 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
       traffic = MOVE_FORWARD;
       around = 1'b0;
     end
-    else if (back) begin
+    else if (~straight && back) begin
       traffic = TURN_RIGHT;
       around = 1'b1;
     end
-    else if (left && ~right) begin
-      traffic = TURN_LEFT;
-      around = 1'b0;
-    end 
-    else if (~left && right) begin
-      traffic = TURN_RIGHT;
-      around = 1'b0;
-    end 
     else begin
       traffic = STOP;
       around = 1'b0;
-    end 
+    end
+    if (traffic == STOP) begin
+      if (~left && ~right) begin
+        traffic = STOP;
+      end
+      else if (left && ~right) begin
+        traffic = TURN_LEFT;
+      end 
+      else if (~left && right) begin
+        traffic = TURN_RIGHT;
+      end 
+      else begin
+        traffic = STOP;
+      end 
+    end
   end
 
-  always @(power, global_state, state, moving_state, traffic, cool_cnt, turn_cnt, crossroad, around) begin
+  always @(power, rst, global_state, state, moving_state, traffic, cool_cnt, turn_cnt, crossroad, around) begin
     if (power == 1'b1 && (global_state == 2'b01 || global_state == 2'b10)) begin
       case (state)
         s1:begin
@@ -88,31 +94,33 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
           endcase
         end 
         s2:begin
-          if (traffic == STOP) begin
-            next_state = s2;
-            next_moving_state = STOP;
-          end 
-          else if (traffic == MOVE_FORWARD) begin
-            next_state = s4;
-            next_moving_state = MOVE_FORWARD;
-          end 
-          else if (traffic == TURN_LEFT) begin
-            next_state = s3;
-            next_moving_state = TURN_LEFT;
-          end 
-          else if (traffic == TURN_RIGHT) begin
-            next_state = s3;
-            next_moving_state = TURN_RIGHT;
-          end 
-          else begin
-            next_state = s2;
-            next_moving_state = STOP;
-          end
+          case (traffic)
+            STOP: begin
+              next_state = s2;
+              next_moving_state = STOP;
+            end 
+            MOVE_FORWARD: begin
+              next_state = s4;
+              next_moving_state = MOVE_FORWARD;
+            end
+            TURN_LEFT: begin
+              next_state = s3;
+              next_moving_state = TURN_LEFT;
+            end
+            TURN_RIGHT: begin
+              next_state = s3;
+              next_moving_state = TURN_RIGHT;
+            end
+            default: begin
+              next_state = s2;
+              next_moving_state = STOP;
+            end
+          endcase
         end
         s3:begin
           case (around)
             1'b1: begin
-              if (turn_cnt >= 11'd400) begin
+              if (turn_cnt >= 16'd200) begin
                 next_state = s4;
                 next_moving_state = STOP;
               end
@@ -123,7 +131,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
               end
             end
             1'b0: begin
-              if (turn_cnt >= 11'd200) begin
+              if (turn_cnt >= 16'd100) begin
                 next_state = s4;
                 next_moving_state = STOP;
               end
