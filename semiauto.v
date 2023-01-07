@@ -116,7 +116,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
             1'b1: begin
               if (turn_cnt >= 16'd200) begin
                 next_state = s4;
-                next_moving_state = STOP;
+                next_moving_state = MOVE_FORWARD;
               end
               else begin
                 next_state = s3;
@@ -127,7 +127,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
             1'b0: begin
               if (turn_cnt >= 16'd100) begin
                 next_state = s4;
-                next_moving_state = STOP;
+                next_moving_state = MOVE_FORWARD;
               end
               else begin
                 next_state = s3;
@@ -141,7 +141,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
               else next_moving_state = TURN_RIGHT;
             end
           endcase
-      end
+        end
         s4:begin
           if (cool_cnt >= 11'd50) begin
             next_state = s1;

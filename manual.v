@@ -1,7 +1,9 @@
 `timescale 1ns / 1ps
 
-module manual(input clk,input rst, input power, input[1:0] global_state, input[1:0] state, input[3:0] moving_state, input clutch,brake,throttle,rgs,left,right,
-output reg [1:0] next_state, output reg [3:0] next_moving_state, output reg manual_power, output reg turn_left_light, output reg turn_right_light,
+module manual(input clk, input rst, input power, input[1:0] global_state, input[1:0] state, 
+input[3:0] moving_state, input clutch,brake,throttle,rgs,left,right,
+output reg [1:0] next_state, output reg [3:0] next_moving_state, 
+output reg manual_power, output reg turn_left_light, output reg turn_right_light,
 output [7:0] seg1, output [7:0] seg2, output [7:0] an);
     parameter POFF=1'b0,PON=1'b1;//电源启动状态
     parameter NSTART=2'b00,START=2'b01,MOVING=2'b10;//小车运行状态
