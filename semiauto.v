@@ -69,7 +69,7 @@ output reg [1:0] next_state, output reg [3:0] next_moving_state);
   end
 
   always @(power, rst, global_state, state, moving_state, traffic, cool_cnt, turn_cnt, crossroad, around) begin
-    if (power == 1'b1 && (global_state == 2'b01 || global_state == 2'b10)) begin
+    if (power == 1'b1 && global_state == 2'b10) begin
       case (state)
         s1:begin
           case (crossroad)

@@ -80,10 +80,11 @@ module SimulatedDevice(
     .left(turn_left_signal), .right(turn_right_signal), .straight(move_forward_signal), 
     .back(move_backward_signal), .next_state(next_state2), .next_moving_state(next_moving_state2));
 
-     auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
-     .turn_detector({back_detector, front_detector, right_detector, left_detector}),
-     .pl_beacon_sig(pl_beacon_sig), .de_beacon_sig(de_beacon_sig), 
-     .next_state(next_state3), .next_moving_state(next_moving_state3));
+    auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
+    .state(state), .moving_state(moving_state),
+    .detectors({back_detector, front_detector, right_detector, left_detector}),
+    .pl_beacon_sig(pl_beacon_sig), .de_beacon_sig(de_beacon_sig), 
+    .next_state(next_state3), .next_moving_state(next_moving_state3));
 
     always @(next_power) begin
         power = next_power;
@@ -96,7 +97,7 @@ module SimulatedDevice(
             else if (state == 2'b01) state_light = 3'b010;
             else state_light = 3'b100;
         end
-        else if (global_state == 2'b01 || global_state == 2'b10) begin
+        else begin
           case (state)
             2'b00: state_light = 3'b001;
             2'b01: state_light = 3'b010;
@@ -104,7 +105,6 @@ module SimulatedDevice(
             2'b11: state_light = 3'b111; 
           endcase
         end
-        else state_light = 3'b000;
         moving_light = moving_state;
       end 
       else begin
@@ -124,23 +124,19 @@ module SimulatedDevice(
                 state = next_state1;
                 moving_state = next_moving_state1;
             end 
-            2'b01:begin
-                state = next_state2;
-                moving_state = next_moving_state2;
-            end
             2'b10:begin
                 state = next_state2;
                 moving_state = next_moving_state2;
             end
-            2'b11:begin
-                // state = next_state3;
-                // moving_state = next_moving_state3;
+            2'b01:begin
+                state = next_state3;
+                moving_state = next_moving_state3;
             end
           endcase
         end
     end
 
-    wire [7:0] in = {2'b10, de_beacon_sig, pl_beacon_sig, moving_state};
+    wire [7:0] in = {2'b10, 2'b00, moving_state};
     wire [7:0] rec;
     assign front_detector = rec[0];
     assign left_detector = rec[1];
