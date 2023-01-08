@@ -1,24 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2022/10/26 22:10:40
-// Design Name: 
-// Module Name: dev_top
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 module SimulatedDevice(
     input[1:0] global_state,
@@ -82,7 +62,7 @@ module SimulatedDevice(
 
     auto au(.sys_clk(sys_clk), .rst(rst), .power(power), .global_state(global_state), 
     .state(state), .moving_state(moving_state),
-    .detectors({back_detector, front_detector, right_detector, left_detector}),
+    .detector({front_detector, left_detector, right_detector, back_detector}),
     .pl_beacon_sig(pl_beacon_sig), .de_beacon_sig(de_beacon_sig), 
     .next_state(next_state3), .next_moving_state(next_moving_state3));
 
