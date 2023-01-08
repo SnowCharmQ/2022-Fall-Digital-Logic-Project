@@ -7,13 +7,12 @@ output reg[1:0] next_state, output reg[3:0] next_moving_state);
 
     parameter MOVING=2'b01, WAITING=2'b00, TURING=2'b10, COOLING=2'b11;
     parameter MOVE_FORWARD=4'b0001, STOP=4'b0000, TURN_LEFT=4'b0100, TURN_RIGHT=4'b1000;
-    parameter front=4'b0001,back=4'b0010,right=4'b0100,left=4'b1000;
 
     reg crossroad = 1'b1;
+    reg [3:0] nms = 4'b0000;
     reg [10:0] turn_cnt;
     reg [10:0] cool_cnt;
     reg [10:0] wait_cnt;
-    reg [3:0] nms;
     wire clk_ms,clk_20ms,clk_16x,clk_x;
     divclk myclk(sys_clk,clk_ms,clk_20ms,clk_16x,clk_x);
 
@@ -34,13 +33,13 @@ output reg[1:0] next_state, output reg[3:0] next_moving_state);
                 end
                 WAITING: begin
                   if (wait_cnt >= 11'd100) begin
-                    if (nms == left || nms == right) begin
-                        next_state = TURING;
-                        next_moving_state = nms;
-                    end
-                    else if (nms == front) begin
+                    if (nms == MOVE_FORWARD) begin
                         next_state = COOLING;
                         next_moving_state = MOVE_FORWARD;
+                    end
+                    else if (nms == TURN_LEFT || nms == TURN_RIGHT) begin
+                      next_state = TURING;
+                      next_moving_state = nms;
                     end
                     else begin
                         next_state = WAITING;
@@ -53,14 +52,17 @@ output reg[1:0] next_state, output reg[3:0] next_moving_state);
                   end       
                 end 
                 TURING: begin
-                    if (turn_cnt >= 11'd101) begin
+                    if (turn_cnt >= 11'd100) begin
                         next_state = COOLING;
                         next_moving_state = MOVE_FORWARD;
                     end
                     else begin
                         next_state = TURING;
-                        if (moving_state == TURN_LEFT) next_moving_state = TURN_LEFT;
-                        else next_moving_state = TURN_RIGHT;
+                        case (moving_state)
+                            TURN_LEFT: next_moving_state = TURN_LEFT;
+                            TURN_RIGHT: next_moving_state = TURN_RIGHT; 
+                            default: next_moving_state = moving_state;
+                        endcase
                     end
                 end
                 COOLING: begin
@@ -82,25 +84,24 @@ output reg[1:0] next_state, output reg[3:0] next_moving_state);
     end
 
     always @(posedge sys_clk) begin
-        case (detector)
-            4'b0000: nms <= right;
-            4'b0001: nms <= left;
-            4'b0010: nms <= left;
-            4'b0011: nms <= left;
-            4'b0100: nms <= right;
-            4'b0101: nms <= right;
-            4'b0110: nms <= front;
-            4'b0111: nms <= front;
-            4'b1000: nms <= right;
-            4'b1001: nms <= right;
-            4'b1010: nms <= left;
-            4'b1011: nms <= left;
-            4'b1100: nms <= right;
-            4'b1101: nms <= right;
-            4'b1110: nms <= front;
-            4'b1111: nms <= front;
-            default: nms <= left;
-        endcase
+         case (detector) //{front_detector, left_detector, right_detector, back_detector}
+            4'b0001: nms <= TURN_LEFT;
+            4'b0010: nms <= TURN_LEFT;
+            4'b0011: nms <= TURN_LEFT;
+            4'b1010: nms <= TURN_LEFT;
+            4'b1011: nms <= TURN_LEFT;
+            4'b0000: nms <= TURN_RIGHT;
+            4'b0100: nms <= TURN_RIGHT;
+            4'b0101: nms <= TURN_RIGHT;
+            4'b1000: nms <= TURN_RIGHT;
+            4'b1001: nms <= TURN_RIGHT;
+            4'b1100: nms <= TURN_RIGHT;
+            4'b1101: nms <= TURN_RIGHT;
+            4'b0110: nms <= MOVE_FORWARD;
+            4'b0111: nms <= MOVE_FORWARD;
+            4'b1110: nms <= MOVE_FORWARD;
+            4'b1111: nms <= MOVE_FORWARD;
+         endcase
     end
 
     always @(posedge sys_clk) begin
