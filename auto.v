@@ -5,7 +5,7 @@ global_state, input[1:0] state, input[3:0] moving_state, input[3:0] detector,
 output reg pl_beacon_sig, output reg de_beacon_sig,
 output reg[1:0] next_state, output reg[3:0] next_moving_state);
 
-    parameter MOVING=2'b01, WAITING=2'b00, TURING=2'b10, COOLING=2'b11;
+    parameter MOVING=2'b01, WAITING=2'b00, TURNING=2'b10, COOLING=2'b11;
     parameter MOVE_FORWARD=4'b0001, STOP=4'b0000, TURN_LEFT=4'b0100, TURN_RIGHT=4'b1000;
 
     reg crossroad = 1'b1;
@@ -33,36 +33,39 @@ output reg[1:0] next_state, output reg[3:0] next_moving_state);
                 end
                 WAITING: begin
                   if (wait_cnt >= 11'd100) begin
-                    if (nms == MOVE_FORWARD) begin
-                        next_state = COOLING;
-                        next_moving_state = MOVE_FORWARD;
-                    end
-                    else if (nms == TURN_LEFT || nms == TURN_RIGHT) begin
-                      next_state = TURING;
-                      next_moving_state = nms;
-                    end
-                    else begin
-                        next_state = WAITING;
-                        next_moving_state = STOP;
-                    end
+                    case (nms)
+                        MOVE_FORWARD: begin
+                            next_state = COOLING;
+                            next_moving_state = MOVE_FORWARD;
+                        end
+                        TURN_LEFT: begin
+                            next_state = TURNING;
+                            next_moving_state = TURN_LEFT;
+                        end
+                        TURN_RIGHT: begin
+                            next_state = TURNING;
+                            next_moving_state = TURN_RIGHT;
+                        end
+                        STOP: begin
+                            next_state = WAITING;
+                            next_moving_state = STOP;
+                        end
+                    endcase
                   end
                   else begin
                     next_state = WAITING;
                     next_moving_state = STOP;
                   end       
                 end 
-                TURING: begin
+                TURNING: begin
                     if (turn_cnt >= 11'd100) begin
                         next_state = COOLING;
                         next_moving_state = MOVE_FORWARD;
                     end
                     else begin
-                        next_state = TURING;
-                        case (moving_state)
-                            TURN_LEFT: next_moving_state = TURN_LEFT;
-                            TURN_RIGHT: next_moving_state = TURN_RIGHT; 
-                            default: next_moving_state = moving_state;
-                        endcase
+                        next_state = TURNING;
+                        if (moving_state == TURN_LEFT) next_moving_state = TURN_LEFT;
+                        else next_moving_state = TURN_RIGHT;
                     end
                 end
                 COOLING: begin
@@ -124,7 +127,7 @@ output reg[1:0] next_state, output reg[3:0] next_moving_state);
             turn_cnt <= 11'b0;
         end
         else begin
-            if (state == TURING) turn_cnt <= turn_cnt + 11'b1;
+            if (state == TURNING) turn_cnt <= turn_cnt + 11'b1;
             else turn_cnt <= 11'b0;
         end
     end
